@@ -1,22 +1,24 @@
-# @title
-%%writefile app.py
+
+
 import streamlit as st
 import requests
 import unicodedata
 import re
-import pandas as pd
 import streamlit.components.v1 as components
 
 API_KEY = "703d35b679aa8f01b02eff474186a6b0"
+
 
 # ===== XỬ LÝ TEXT =====
 def remove_accents(text):
     text = unicodedata.normalize('NFD', text)
     return ''.join(c for c in text if unicodedata.category(c) != 'Mn')
 
+
 def clean_city_name(city):
     city = city.replace("hom nay", "").strip()
     return city
+
 
 def extract_city(user_input):
     text = remove_accents(user_input.lower())
@@ -24,7 +26,6 @@ def extract_city(user_input):
     patterns = [
         r"thoi tiet (.+)",
         r"toi muon biet thoi tiet (.+)",
-        r"o (.+)",
         r"weather in (.+)"
     ]
 
@@ -38,7 +39,9 @@ def extract_city(user_input):
 
 # ===== LẤY THỜI TIẾT =====
 def get_weather(city):
+
     url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric&lang=vi"
+
     data = requests.get(url).json()
 
     if data.get("cod") != 200:
@@ -54,7 +57,7 @@ def get_weather(city):
     return result, lat, lon
 
 
-# ===== HIỂN THỊ BẢN ĐỒ WEATHER LAYER =====
+# ===== HIỂN THỊ BẢN ĐỒ =====
 def show_weather_map(lat, lon):
 
     html = f"""
@@ -97,13 +100,10 @@ def show_weather_map(lat, lon):
     }}).addTo(map);
 
 
-    // ===== LAYERS =====
-
     var tempLayer = L.tileLayer(
     "https://tile.openweathermap.org/map/temp_new/{{z}}/{{x}}/{{y}}.png?appid={API_KEY}",
     {{opacity:0.8}}
     ).addTo(map);
-
 
     var rainLayer = L.tileLayer(
     "https://tile.openweathermap.org/map/precipitation_new/{{z}}/{{x}}/{{y}}.png?appid={API_KEY}",
@@ -125,7 +125,6 @@ def show_weather_map(lat, lon):
     {{opacity:0.9}}
     );
 
-
     var overlays = {{
         "🌡 Nhiệt độ": tempLayer,
         "🌧 Mưa": rainLayer,
@@ -136,40 +135,33 @@ def show_weather_map(lat, lon):
 
     L.control.layers(null, overlays).addTo(map);
 
-
-    // ===== CHÚ THÍCH ĐỘNG =====
-
     var legend = L.control({{position: 'bottomright'}});
 
     legend.onAdd = function(map) {{
         var div = L.DomUtil.create('div', 'legend');
         div.id = "legendBox";
-        div.innerHTML = "<b>🌡 Nhiệt độ</b><br>Màu sắc thể hiện nhiệt độ bề mặt khu vực.";
+        div.innerHTML = "<b>🌡 Nhiệt độ</b><br>Màu sắc thể hiện nhiệt độ khu vực.";
         return div;
     }};
 
     legend.addTo(map);
 
-
     function updateLegend(text){{
         document.getElementById("legendBox").innerHTML = text;
     }}
 
-
-    // ===== SỰ KIỆN BẬT LAYER =====
-
     map.on('overlayadd', function(e){{
 
         if(e.name === "🌡 Nhiệt độ"){{
-            updateLegend("<b>🌡 Nhiệt độ</b><br>Màu sắc thể hiện nhiệt độ từng khu vực trên bản đồ.");
+            updateLegend("<b>🌡 Nhiệt độ</b><br>Màu sắc thể hiện nhiệt độ từng khu vực.");
         }}
 
         if(e.name === "🌧 Mưa"){{
-            updateLegend("<b>🌧 Lượng mưa</b><br>Màu xanh đậm = mưa lớn.<br>Xanh nhạt = mưa nhẹ.");
+            updateLegend("<b>🌧 Lượng mưa</b><br>Xanh đậm = mưa lớn.");
         }}
 
         if(e.name === "☁ Mây"){{
-            updateLegend("<b>☁ Mây</b><br>Màu trắng thể hiện mật độ mây trên bầu trời.");
+            updateLegend("<b>☁ Mây</b><br>Màu trắng thể hiện mật độ mây.");
         }}
 
         if(e.name === "💨 Gió"){{
@@ -177,17 +169,15 @@ def show_weather_map(lat, lon):
         }}
 
         if(e.name === "📡 Radar mưa"){{
-            updateLegend("<b>📡 Radar mưa realtime</b><br>Hiển thị vùng đang có mưa theo thời gian thực.");
+            updateLegend("<b>📡 Radar mưa realtime</b>");
         }}
 
     }});
-
 
     L.marker([{lat}, {lon}])
     .addTo(map)
     .bindPopup("Thành phố bạn tìm")
     .openPopup();
-
 
     </script>
 
@@ -198,15 +188,13 @@ def show_weather_map(lat, lon):
     components.html(html, height=540)
 
 
-
 # ===== UI =====
 st.set_page_config(page_title="Weather Map AI", page_icon="🌦")
 
-st.title("🌦 Chatbot Thời Tiết + Bản đồ nhiệt độ")
+st.title("🌦 Chatbot Thời Tiết + Bản đồ")
 
-st.write("Hỏi thời tiết bất kỳ thành phố nào. Bản đồ sẽ hiển thị **nhiệt độ toàn khu vực bằng màu sắc**.")
+st.write("Hỏi thời tiết bất kỳ thành phố nào.")
 
-# ===== LỊCH SỬ =====
 if "history" not in st.session_state:
     st.session_state.history = []
 
@@ -215,6 +203,7 @@ user_input = st.text_input(
     "Bạn muốn biết thời tiết ở đâu?",
     placeholder="ví dụ: thời tiết hà nội"
 )
+
 
 if user_input:
 
@@ -234,7 +223,7 @@ if user_input:
 
                 st.session_state.history.append(result)
 
-                st.subheader("🗺 Bản đồ nhiệt độ khu vực")
+                st.subheader("🗺 Bản đồ thời tiết")
 
                 show_weather_map(lat, lon)
 
@@ -248,12 +237,10 @@ if user_input:
         st.info("Hiện tại mình chỉ hỗ trợ hỏi thời tiết")
 
 
-
-# ===== LỊCH SỬ CHAT =====
 if st.session_state.history:
 
     st.divider()
-    st.subheader("🕘 Lịch sử kết quả")
+    st.subheader("🕘 Lịch sử")
 
     for item in reversed(st.session_state.history):
-        st.write(item)
+        st.write(item))
