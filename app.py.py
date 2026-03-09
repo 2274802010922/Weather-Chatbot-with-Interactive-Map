@@ -9,7 +9,7 @@ Original file is located at
 
 import requests
 
-API_KEY = "703d35b679aa8f01b02eff474186a6b0"
+API_KEY = "YOUR_API"
 
 url = f"https://api.openweathermap.org/data/2.5/weather?q=hanoi&appid={API_KEY}"
 
