@@ -1,5 +1,4 @@
 
-
 import streamlit as st
 import requests
 import unicodedata
@@ -157,15 +156,15 @@ def show_weather_map(lat, lon):
         }}
 
         if(e.name === "🌧 Mưa"){{
-            updateLegend("<b>🌧 Lượng mưa</b><br>Xanh đậm = mưa lớn.");
+            updateLegend("<b>🌧 Lượng mưa</b>");
         }}
 
         if(e.name === "☁ Mây"){{
-            updateLegend("<b>☁ Mây</b><br>Màu trắng thể hiện mật độ mây.");
+            updateLegend("<b>☁ Mây</b>");
         }}
 
         if(e.name === "💨 Gió"){{
-            updateLegend("<b>💨 Gió</b><br>Thể hiện hướng và cường độ gió.");
+            updateLegend("<b>💨 Gió</b>");
         }}
 
         if(e.name === "📡 Radar mưa"){{
@@ -198,12 +197,10 @@ st.write("Hỏi thời tiết bất kỳ thành phố nào.")
 if "history" not in st.session_state:
     st.session_state.history = []
 
-
 user_input = st.text_input(
     "Bạn muốn biết thời tiết ở đâu?",
     placeholder="ví dụ: thời tiết hà nội"
 )
-
 
 if user_input:
 
@@ -243,4 +240,4 @@ if st.session_state.history:
     st.subheader("🕘 Lịch sử")
 
     for item in reversed(st.session_state.history):
-        st.write(item))
+        st.write(item)
