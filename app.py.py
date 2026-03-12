@@ -4,6 +4,8 @@ import requests
 import unicodedata
 import re
 import streamlit.components.v1 as components
+from weather_ml import get_weather_data, predict_future_temperature
+import plotly.express as px
 
 API_KEY = "703d35b679aa8f01b02eff474186a6b0" #(API DEMO )
 
@@ -223,6 +225,22 @@ if user_input:
                 st.subheader("🗺 Bản đồ thời tiết")
 
                 show_weather_map(lat, lon)
+                st.subheader("🤖 AI dự đoán nhiệt độ")
+                
+                    df = get_weather_data(city)
+                
+                    prediction_df = predict_future_temperature(df)
+                
+                    st.dataframe(prediction_df)
+                
+                    fig = px.line(
+                        prediction_df,
+                        x="Step",
+                        y="Predicted Temperature",
+                        title="Dự đoán nhiệt độ sắp tới"
+                    )
+                
+                    st.plotly_chart(fig)
 
             else:
                 st.error("Không tìm thấy thành phố")
