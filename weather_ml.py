@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 
 
-API_KEY = "YOUR_OPENWEATHER_API_KEY"
+API_KEY = "703d35b679aa8f01b02eff474186a6b0"
 
 
 def get_weather_data(city):
