@@ -1,67 +1,66 @@
-# Weather Chatbot with Interactive Map + Machine Learning
+# Weather Chatbot with Interactive Map + ML Dashboard
 
-This project is a Streamlit web app that combines:
+Ứng dụng Streamlit kết hợp:
 
-- Current weather chatbot
-- Interactive map
-- Machine learning temperature prediction
-- Data Science dashboard using a Kaggle weather dataset
+- Chatbot hỏi thời tiết hiện tại
+- Bản đồ thời tiết nhiều lớp
+- Dự đoán nhiệt độ bằng Machine Learning
+- Dashboard phân tích dữ liệu từ Kaggle
 
-## Features
+## Tính năng chính
 
-### 1. Current Weather Chatbot
-- Ask about the weather by typing a city name
-- Supports simple natural language input
-- Shows:
-  - city name
-  - temperature
-  - humidity
-  - pressure
-  - wind speed
-  - weather description
+### 1. Chatbot & thời tiết hiện tại
+Người dùng có thể nhập:
+- tên thành phố
+- hoặc câu như: `thời tiết ở Hà Nội`, `weather in Da Nang`
 
-### 2. Interactive Map
-- Displays the selected city's location on the map
+Ứng dụng hiển thị:
+- nhiệt độ
+- độ ẩm
+- áp suất
+- tốc độ gió
+- mô tả thời tiết
+
+### 2. Bản đồ thời tiết nhiều lớp
+Bản đồ có thể bật/tắt các lớp:
+- Bản đồ nhiệt độ
+- Khu vực đang có mưa
+- Hướng và cường độ gió
+- Mật độ mây
+- Áp suất khí quyển
 
 ### 3. Machine Learning Prediction
-- Uses a trained model to predict temperature from forecast data
-- Compares:
-  - actual temperature
-  - predicted temperature
+Mô hình được huấn luyện từ dataset Kaggle để ước lượng nhiệt độ dựa trên dữ liệu dự báo.
 
-### 4. Data Science Dashboard
-- Temperature distribution
-- Humidity distribution
-- Temperature trend chart
-- Correlation heatmap
-- Model evaluation table
-
-## Machine Learning Models
-The project compares:
+Các mô hình được so sánh:
 - Linear Regression
 - Random Forest Regressor
 - Gradient Boosting Regressor
 
-Evaluation metrics:
+Các chỉ số đánh giá:
 - MAE
 - RMSE
 - R²
 
-The best model is automatically selected and saved as:
+### 4. Data Science Dashboard
+Dashboard gồm:
+- Bảng dữ liệu đã làm sạch
+- Histogram nhiệt độ
+- Histogram độ ẩm
+- Biểu đồ xu hướng nhiệt độ
+- Ma trận tương quan
 
-- `weather_model.pkl`
+## File trong project
 
-## Files
+- `app.py` → giao diện Streamlit
+- `weather_ml.py` → xử lý dữ liệu dự báo và dự đoán ML
+- `train_model.py` → huấn luyện mô hình từ dataset Kaggle
+- `weatherHistory.csv` → dataset gốc
+- `weather_dataset_cleaned.csv` → dataset đã làm sạch
+- `model_comparison.csv` → kết quả so sánh mô hình
+- `weather_model.pkl` → mô hình tốt nhất
 
-- `app.py` → Streamlit app
-- `weather_ml.py` → weather forecasting + ML prediction logic
-- `train_model.py` → training pipeline using Kaggle dataset
-- `weatherHistory.csv` → original Kaggle dataset
-- `weather_dataset_cleaned.csv` → cleaned dataset
-- `model_comparison.csv` → model evaluation results
-- `weather_model.pkl` → trained best model
-
-## Run locally
+## Cài đặt
 
 ```bash
 pip install -r requirements.txt
