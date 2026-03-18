@@ -16,7 +16,7 @@ st.set_page_config(page_title="Weather Chatbot + ML Dashboard", layout="wide")
 
 st.title("🌦️ Weather Chatbot with Interactive Map + ML Dashboard")
 st.caption(
-    "Ứng dụng kết hợp thời tiết hiện tại, bản đồ lớp thời tiết trực quan, "
+    "Ứng dụng kết hợp thời tiết hiện tại, bản đồ thời tiết trực quan, "
     "dự đoán nhiệt độ bằng Machine Learning và dashboard phân tích dữ liệu."
 )
 
@@ -44,6 +44,7 @@ def extract_city(user_input: str) -> str:
     return text.strip(" ?,.!").title()
 
 
+@st.cache_data(ttl=600)
 def get_current_weather(city):
     params = {
         "q": city,
@@ -57,7 +58,18 @@ def get_current_weather(city):
     return response.json()
 
 
-def create_weather_layer_map(lat, lon, city_name, current_temp):
+@st.cache_data(ttl=600)
+def load_model_comparison():
+    return pd.read_csv("model_comparison.csv")
+
+
+@st.cache_data(ttl=600)
+def load_cleaned_dataset():
+    return pd.read_csv("weather_dataset_cleaned.csv")
+
+
+@st.cache_resource
+def build_cached_map(lat, lon, city_name, current_temp, api_key):
     m = folium.Map(
         location=[lat, lon],
         zoom_start=7,
@@ -77,7 +89,7 @@ def create_weather_layer_map(lat, lon, city_name, current_temp):
 
     # Lớp nhiệt độ
     folium.TileLayer(
-        tiles=f"https://tile.openweathermap.org/map/temp_new/{{z}}/{{x}}/{{y}}.png?appid={API_KEY}",
+        tiles=f"https://tile.openweathermap.org/map/temp_new/{{z}}/{{x}}/{{y}}.png?appid={api_key}",
         attr="OpenWeatherMap",
         name="🌡️ Bản đồ nhiệt độ",
         overlay=True,
@@ -87,7 +99,7 @@ def create_weather_layer_map(lat, lon, city_name, current_temp):
 
     # Lớp mưa
     folium.TileLayer(
-        tiles=f"https://tile.openweathermap.org/map/precipitation_new/{{z}}/{{x}}/{{y}}.png?appid={API_KEY}",
+        tiles=f"https://tile.openweathermap.org/map/precipitation_new/{{z}}/{{x}}/{{y}}.png?appid={api_key}",
         attr="OpenWeatherMap",
         name="🌧️ Khu vực đang có mưa",
         overlay=True,
@@ -97,7 +109,7 @@ def create_weather_layer_map(lat, lon, city_name, current_temp):
 
     # Lớp gió
     folium.TileLayer(
-        tiles=f"https://tile.openweathermap.org/map/wind_new/{{z}}/{{x}}/{{y}}.png?appid={API_KEY}",
+        tiles=f"https://tile.openweathermap.org/map/wind_new/{{z}}/{{x}}/{{y}}.png?appid={api_key}",
         attr="OpenWeatherMap",
         name="💨 Hướng và cường độ gió",
         overlay=True,
@@ -107,7 +119,7 @@ def create_weather_layer_map(lat, lon, city_name, current_temp):
 
     # Lớp mây
     folium.TileLayer(
-        tiles=f"https://tile.openweathermap.org/map/clouds_new/{{z}}/{{x}}/{{y}}.png?appid={API_KEY}",
+        tiles=f"https://tile.openweathermap.org/map/clouds_new/{{z}}/{{x}}/{{y}}.png?appid={api_key}",
         attr="OpenWeatherMap",
         name="☁️ Mật độ mây",
         overlay=True,
@@ -117,7 +129,7 @@ def create_weather_layer_map(lat, lon, city_name, current_temp):
 
     # Lớp áp suất
     folium.TileLayer(
-        tiles=f"https://tile.openweathermap.org/map/pressure_new/{{z}}/{{x}}/{{y}}.png?appid={API_KEY}",
+        tiles=f"https://tile.openweathermap.org/map/pressure_new/{{z}}/{{x}}/{{y}}.png?appid={api_key}",
         attr="OpenWeatherMap",
         name="🧭 Áp suất khí quyển",
         overlay=True,
@@ -133,7 +145,7 @@ def create_weather_layer_map(lat, lon, city_name, current_temp):
 
 
 def render_model_summary():
-    model_df = pd.read_csv("model_comparison.csv")
+    model_df = load_model_comparison()
     best_model = model_df.sort_values(by="RMSE").iloc[0]
 
     st.success(
@@ -153,122 +165,142 @@ tab1, tab2, tab3 = st.tabs([
 with tab1:
     st.subheader("Nhập câu hỏi hoặc tên thành phố")
     st.caption(
-        "Bạn có thể nhập kiểu: 'weather in Da Nang', "
+        "Bạn có thể nhập kiểu: 'thời tiết ở Hà Nội', 'weather in Da Nang', "
         "hoặc chỉ nhập tên thành phố."
     )
 
     user_input = st.text_input(
         "Ví dụ:",
-        value="ho chi minh"
+        value=st.session_state.get("weather_input", "ho chi minh"),
+        key="weather_input"
     )
 
-    if user_input:
+    if st.button("Xem thời tiết hiện tại"):
         city = extract_city(user_input)
+        st.session_state["selected_city"] = city
 
-        try:
-            current_data = get_current_weather(city)
-            city_name = current_data["name"]
-            temp = current_data["main"]["temp"]
-            humidity = current_data["main"]["humidity"]
-            pressure = current_data["main"]["pressure"]
-            wind_speed = current_data["wind"]["speed"]
-            description = current_data["weather"][0]["description"]
-            lat = current_data["coord"]["lat"]
-            lon = current_data["coord"]["lon"]
+    if "selected_city" not in st.session_state:
+        st.session_state["selected_city"] = extract_city(user_input)
 
-            col1, col2, col3 = st.columns(3)
+    city = st.session_state["selected_city"]
 
-            with col1:
-                st.metric("📍 Thành phố", city_name)
-                st.metric("🌡️ Nhiệt độ", f"{temp:.1f} °C")
+    try:
+        current_data = get_current_weather(city)
+        city_name = current_data["name"]
+        temp = current_data["main"]["temp"]
+        humidity = current_data["main"]["humidity"]
+        pressure = current_data["main"]["pressure"]
+        wind_speed = current_data["wind"]["speed"]
+        description = current_data["weather"][0]["description"]
+        lat = current_data["coord"]["lat"]
+        lon = current_data["coord"]["lon"]
 
-            with col2:
-                st.metric("💧 Độ ẩm", f"{humidity}%")
-                st.metric("🧭 Áp suất", f"{pressure} hPa")
+        col1, col2, col3 = st.columns(3)
 
-            with col3:
-                st.metric("💨 Tốc độ gió", f"{wind_speed:.1f} m/s")
-                st.metric("📝 Mô tả", description)
+        with col1:
+            st.metric("📍 Thành phố", city_name)
+            st.metric("🌡️ Nhiệt độ", f"{temp:.1f} °C")
 
-            st.subheader("🗺️ Bản đồ thời tiết nhiều lớp")
-            st.info(
-                "Chú thích: Bạn có thể bật/tắt các lớp ở góc phải bản đồ để xem "
-                "nhiệt độ theo màu sắc khu vực, nơi đang có mưa, hướng gió, mây và áp suất."
-            )
+        with col2:
+            st.metric("💧 Độ ẩm", f"{humidity}%")
+            st.metric("🧭 Áp suất", f"{pressure} hPa")
 
-            weather_map = create_weather_layer_map(lat, lon, city_name, temp)
-            st_folium(weather_map, width=None, height=550)
+        with col3:
+            st.metric("💨 Tốc độ gió", f"{wind_speed:.1f} m/s")
+            st.metric("📝 Mô tả", description)
 
-        except Exception as e:
-            st.error(f"Không lấy được dữ liệu thời tiết hiện tại: {e}")
+        st.subheader("🗺️ Bản đồ thời tiết nhiều lớp")
+        st.info(
+            "Chú thích: Bạn có thể bật/tắt các lớp ở góc phải bản đồ để xem "
+            "nhiệt độ theo màu sắc khu vực, nơi đang có mưa, hướng gió, mây và áp suất."
+        )
+
+        weather_map = build_cached_map(lat, lon, city_name, temp, API_KEY)
+
+        st_folium(
+            weather_map,
+            width=None,
+            height=550,
+            returned_objects=[]
+        )
+
+    except Exception as e:
+        st.error(f"Không lấy được dữ liệu thời tiết hiện tại: {e}")
 
 with tab2:
     st.subheader("Dự đoán nhiệt độ bằng mô hình Machine Learning")
     st.caption(
-        "Phần này dùng mô hình đã train từ dataset Kaggle để ước lượng nhiệt độ "
-        "dựa trên dữ liệu dự báo từ API."
+        "Phần này dùng mô hình đã train từ dữ liệu OpenWeather API "
+        "của nhiều thành phố để ước lượng nhiệt độ."
     )
 
-    city_for_prediction = st.text_input(
+    prediction_city_input = st.text_input(
         "Tên thành phố để dự đoán",
-        value="Hanoi",
+        value=st.session_state.get("prediction_city", "Hanoi"),
         key="prediction_city"
     )
 
     if st.button("Chạy dự đoán"):
-        try:
-            forecast_df = get_weather_data(city_for_prediction)
-            prediction_df = predict_future_temperature(forecast_df)
+        st.session_state["prediction_city_selected"] = prediction_city_input.strip().title()
 
-            st.info(
-                "Chú thích: 'temp' là nhiệt độ từ dữ liệu dự báo API, "
-                "còn 'Estimated Temperature (ML)' là nhiệt độ ước lượng từ mô hình học máy "
-                "được train bằng dữ liệu OpenWeather API của nhiều thành phố Việt Nam."
-            )
+    if "prediction_city_selected" not in st.session_state:
+        st.session_state["prediction_city_selected"] = prediction_city_input.strip().title()
 
-            st.write("### Bảng dự đoán")
-            st.dataframe(prediction_df, use_container_width=True)
+    city_for_prediction = st.session_state["prediction_city_selected"]
 
-            fig = px.line(
-                prediction_df,
-                x="datetime",
-                y=["temp", "Estimated Temperature (ML)"],
-                title="So sánh nhiệt độ từ API và nhiệt độ ước lượng từ mô hình"
-            )
-            fig.update_layout(
-                xaxis_title="Thời gian",
-                yaxis_title="Nhiệt độ (°C)",
-                legend_title="Biến"
-            )
-            st.plotly_chart(fig, use_container_width=True)
+    try:
+        forecast_df = get_weather_data(city_for_prediction)
+        prediction_df = predict_future_temperature(forecast_df)
 
-            st.write("### Đánh giá mô hình")
-            model_df = render_model_summary()
-            st.dataframe(model_df, use_container_width=True)
+        st.info(
+            "Chú thích: 'temp' là nhiệt độ từ dữ liệu dự báo API, "
+            "còn 'Estimated Temperature (ML)' là nhiệt độ ước lượng từ mô hình học máy "
+            "được train bằng dữ liệu OpenWeather API."
+        )
 
-        except FileNotFoundError:
-            st.error(
-                "Không tìm thấy weather_model.pkl hoặc model_comparison.csv. "
-                "Hãy chắc rằng bạn đã upload đủ file lên GitHub."
-            )
-        except Exception as e:
-            st.error(f"Lỗi khi chạy dự đoán: {e}")
+        st.write("### Bảng dự đoán")
+        st.dataframe(prediction_df, use_container_width=True)
+
+        fig = px.line(
+            prediction_df,
+            x="datetime",
+            y=["temp", "Estimated Temperature (ML)"],
+            title="So sánh nhiệt độ từ API và nhiệt độ ước lượng từ mô hình"
+        )
+        fig.update_layout(
+            xaxis_title="Thời gian",
+            yaxis_title="Nhiệt độ (°C)",
+            legend_title="Biến"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.write("### Đánh giá mô hình")
+        model_df = render_model_summary()
+        st.dataframe(model_df, use_container_width=True)
+
+    except FileNotFoundError:
+        st.error(
+            "Không tìm thấy weather_model.pkl hoặc model_comparison.csv. "
+            "Hãy chắc rằng bạn đã upload đủ file lên GitHub."
+        )
+    except Exception as e:
+        st.error(f"Lỗi khi chạy dự đoán: {e}")
 
 with tab3:
     st.subheader("Phân tích dữ liệu từ Kaggle")
     st.caption(
-        "Tab này giúp người dùng hiểu dữ liệu lịch sử thời tiết dùng để train mô hình."
+        "Tab này giúp người dùng hiểu dữ liệu lịch sử thời tiết dùng để phân tích dữ liệu."
     )
 
     try:
-        df = pd.read_csv("weather_dataset_cleaned.csv")
+        df = load_cleaned_dataset()
 
         st.write("### Xem nhanh dữ liệu")
         st.dataframe(df.head(20), use_container_width=True)
 
         st.info(
-            "Chú thích: Dữ liệu đã được làm sạch và chuẩn hóa để huấn luyện mô hình. "
-            "Độ ẩm ở đây đã được đổi về thang 0-100 để khớp với API."
+            "Chú thích: Dữ liệu đã được làm sạch và chuẩn hóa để phân tích. "
+            "Độ ẩm ở đây đã được đổi về thang 0-100."
         )
 
         col1, col2 = st.columns(2)
