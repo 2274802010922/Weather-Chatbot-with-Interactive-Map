@@ -41,7 +41,7 @@ def load_and_clean_data(filepath):
     df["datetime"] = pd.to_datetime(df["datetime"], utc=True, errors="coerce")
     df = df.dropna(subset=["datetime"])
 
-    # Đưa humidity về cùng đơn vị với API OpenWeatherMap (0-100)
+    # Đồng nhất humidity với API OpenWeatherMap: 0-100
     df["humidity"] = df["humidity"] * 100
 
     df["hour"] = df["datetime"].dt.hour
