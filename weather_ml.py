@@ -14,7 +14,7 @@ def get_weather_data(city):
         "lang": "vi"
     }
 
-    response = requests.get(FORECAST_URL, params=params, timeout=10)
+    response = requests.get(FORECAST_URL, params=params, timeout=15)
     response.raise_for_status()
     data = response.json()
 
@@ -23,10 +23,10 @@ def get_weather_data(city):
         rows.append({
             "datetime": item["dt_txt"],
             "temp": item["main"]["temp"],
-            "humidity": item["main"]["humidity"],  # 0-100
-            "wind_speed": item["wind"]["speed"] * 3.6,  # m/s -> km/h
+            "humidity": item["main"]["humidity"],                  # 0-100
+            "wind_speed": item["wind"]["speed"] * 3.6,            # m/s -> km/h
             "wind_bearing": item["wind"].get("deg", 0),
-            "visibility": item.get("visibility", 10000) / 1000,  # m -> km
+            "visibility": item.get("visibility", 10000) / 1000,   # m -> km
             "pressure": item["main"]["pressure"]
         })
 
@@ -58,6 +58,8 @@ def predict_future_temperature(df):
     ]
 
     prediction_df = df.copy()
-    prediction_df["Predicted Temperature"] = model.predict(prediction_df[feature_columns])
+    prediction_df["Predicted Temperature"] = model.predict(
+        prediction_df[feature_columns]
+    )
 
     return prediction_df[["datetime", "temp", "Predicted Temperature"]]
