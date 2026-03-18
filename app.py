@@ -230,16 +230,14 @@ if user_input:
                 df = get_weather_data(city)
                 
                 prediction_df = predict_future_temperature(df)
-                
                 st.dataframe(prediction_df)
                 
                 fig = px.line(
                     prediction_df,
-                    x="Step",
-                    y="Predicted Temperature",
-                    title="Dự đoán nhiệt độ sắp tới"
+                    x="datetime",
+                    y=["temp", "Predicted Temperature"],
+                    title="So sánh nhiệt độ thực tế và nhiệt độ dự đoán"
                 )
-                
                 st.plotly_chart(fig)
 
             else:
