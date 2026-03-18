@@ -153,7 +153,7 @@ tab1, tab2, tab3 = st.tabs([
 with tab1:
     st.subheader("Nhập câu hỏi hoặc tên thành phố")
     st.caption(
-        "Bạn có thể nhập kiểu: 'thời tiết ở Hà Nội', 'weather in Da Nang', "
+        "Bạn có thể nhập kiểu: 'weather in Da Nang', "
         "hoặc chỉ nhập tên thành phố."
     )
 
@@ -221,8 +221,9 @@ with tab2:
             prediction_df = predict_future_temperature(forecast_df)
 
             st.info(
-                "Chú thích: Đường 'temp' là nhiệt độ từ dữ liệu dự báo API, "
-                "còn 'Predicted Temperature' là nhiệt độ ước lượng từ mô hình ML."
+                "Chú thích: 'temp' là nhiệt độ từ dữ liệu dự báo API, "
+                "còn 'Estimated Temperature (ML)' là nhiệt độ ước lượng từ mô hình học máy "
+                "được train bằng dữ liệu OpenWeather API của nhiều thành phố Việt Nam."
             )
 
             st.write("### Bảng dự đoán")
@@ -231,7 +232,7 @@ with tab2:
             fig = px.line(
                 prediction_df,
                 x="datetime",
-                y=["temp", "Predicted Temperature"],
+                y=["temp", "Estimated Temperature (ML)"],
                 title="So sánh nhiệt độ từ API và nhiệt độ ước lượng từ mô hình"
             )
             fig.update_layout(
