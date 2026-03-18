@@ -18,16 +18,23 @@ def get_weather_data(city):
     response.raise_for_status()
     data = response.json()
 
+    city_coord = data.get("city", {}).get("coord", {})
+    lat = city_coord.get("lat", 0.0)
+    lon = city_coord.get("lon", 0.0)
+
     rows = []
     for item in data["list"]:
         rows.append({
             "datetime": item["dt_txt"],
             "temp": item["main"]["temp"],
-            "humidity": item["main"]["humidity"],                  # 0-100
-            "wind_speed": item["wind"]["speed"] * 3.6,            # m/s -> km/h
+            "humidity": item["main"]["humidity"],
+            "pressure": item["main"]["pressure"],
+            "wind_speed": item["wind"]["speed"],
             "wind_bearing": item["wind"].get("deg", 0),
-            "visibility": item.get("visibility", 10000) / 1000,   # m -> km
-            "pressure": item["main"]["pressure"]
+            "visibility": item.get("visibility", 10000),
+            "clouds": item["clouds"]["all"],
+            "lat": lat,
+            "lon": lon
         })
 
     df = pd.DataFrame(rows)
@@ -37,7 +44,6 @@ def get_weather_data(city):
     df["hour"] = df["datetime"].dt.hour
     df["day"] = df["datetime"].dt.day
     df["month"] = df["datetime"].dt.month
-    df["year"] = df["datetime"].dt.year
 
     return df
 
@@ -47,19 +53,21 @@ def predict_future_temperature(df):
 
     feature_columns = [
         "humidity",
+        "pressure",
         "wind_speed",
         "wind_bearing",
         "visibility",
-        "pressure",
+        "clouds",
+        "lat",
+        "lon",
         "hour",
         "day",
-        "month",
-        "year"
+        "month"
     ]
 
     prediction_df = df.copy()
-    prediction_df["Predicted Temperature"] = model.predict(
+    prediction_df["Estimated Temperature (ML)"] = model.predict(
         prediction_df[feature_columns]
     )
 
-    return prediction_df[["datetime", "temp", "Predicted Temperature"]]
+    return prediction_df[["datetime", "temp", "Estimated Temperature (ML)"]]
