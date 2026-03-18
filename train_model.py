@@ -8,7 +8,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-API_KEY = "YOUR_API_KEY_HERE"
+API_KEY = "703d35b679aa8f01b02eff474186a6b0"
 FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast"
 
 CITIES = ["Hanoi", "Ho Chi Minh City", "Da Nang", "Can Tho", "Hai Phong"]
