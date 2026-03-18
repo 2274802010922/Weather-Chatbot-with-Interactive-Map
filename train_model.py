@@ -41,6 +41,9 @@ def load_and_clean_data(filepath):
     df["datetime"] = pd.to_datetime(df["datetime"], utc=True, errors="coerce")
     df = df.dropna(subset=["datetime"])
 
+    # Đưa humidity về cùng đơn vị với API OpenWeatherMap (0-100)
+    df["humidity"] = df["humidity"] * 100
+
     df["hour"] = df["datetime"].dt.hour
     df["day"] = df["datetime"].dt.day
     df["month"] = df["datetime"].dt.month
@@ -64,7 +67,6 @@ def prepare_features(df):
 
     X = df[feature_columns]
     y = df["temp"]
-
     return X, y
 
 
@@ -100,8 +102,15 @@ def main():
 
     models = [
         ("Linear Regression", LinearRegression()),
-        ("Random Forest", RandomForestRegressor(n_estimators=20, max_depth=5, random_state=42)),
-        ("Gradient Boosting", GradientBoostingRegressor(n_estimators=50, max_depth=3, random_state=42))
+        ("Random Forest", RandomForestRegressor(
+            n_estimators=20,
+            max_depth=5,
+            random_state=42
+        )),
+        ("Gradient Boosting", GradientBoostingRegressor(
+            n_estimators=50,
+            random_state=42
+        ))
     ]
 
     results = []
@@ -117,9 +126,7 @@ def main():
             "R2": r["r2"]
         }
         for r in results
-    ])
-
-    results_df = results_df.sort_values(by="RMSE")
+    ]).sort_values(by="RMSE")
 
     print("\nModel comparison:")
     print(results_df)
