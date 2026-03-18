@@ -1,3 +1,4 @@
+import requests
 import pandas as pd
 import joblib
 
@@ -6,68 +7,114 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-DATA_PATH = "weatherHistory.csv"
+API_KEY = "703d35b679aa8f01b02eff474186a6b0"
+FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast"
+
+# Dùng nhiều thành phố Việt Nam để model học đúng khí hậu hơn
+CITIES = [
+    "Hanoi",
+    "Ho Chi Minh City",
+    "Da Nang",
+    "Can Tho",
+    "Nha Trang",
+    "Hue",
+    "Vung Tau",
+    "Quy Nhon",
+    "Phan Thiet",
+    "Buon Ma Thuot",
+    "Pleiku",
+    "Vinh",
+    "Thai Nguyen",
+    "Hai Duong",
+    "Nam Dinh",
+    "Long Xuyen",
+    "Rach Gia",
+    "Ca Mau",
+    "Ha Long",
+    "Bien Hoa"
+]
 
 
-def load_and_clean_data(filepath):
-    df = pd.read_csv(filepath)
+def get_forecast_data(city):
+    params = {
+        "q": city,
+        "appid": API_KEY,
+        "units": "metric",
+        "lang": "vi"
+    }
 
-    selected_columns = [
-        "Formatted Date",
-        "Temperature (C)",
-        "Apparent Temperature (C)",
-        "Humidity",
-        "Wind Speed (km/h)",
-        "Wind Bearing (degrees)",
-        "Visibility (km)",
-        "Pressure (millibars)"
-    ]
+    response = requests.get(FORECAST_URL, params=params, timeout=15)
+    response.raise_for_status()
+    data = response.json()
 
-    df = df[selected_columns].copy()
+    city_coord = data.get("city", {}).get("coord", {})
+    lat = city_coord.get("lat", 0.0)
+    lon = city_coord.get("lon", 0.0)
 
-    df.columns = [
-        "datetime",
-        "temp",
-        "feels_like",
-        "humidity",
-        "wind_speed",
-        "wind_bearing",
-        "visibility",
-        "pressure"
-    ]
+    rows = []
+    for item in data["list"]:
+        rows.append({
+            "city": city,
+            "datetime": item["dt_txt"],
+            "temp": item["main"]["temp"],
+            "humidity": item["main"]["humidity"],                # %
+            "pressure": item["main"]["pressure"],                # hPa
+            "wind_speed": item["wind"]["speed"],                 # m/s
+            "wind_bearing": item["wind"].get("deg", 0),          # độ
+            "visibility": item.get("visibility", 10000),         # mét
+            "clouds": item["clouds"]["all"],                     # %
+            "lat": lat,
+            "lon": lon
+        })
 
-    df = df.dropna()
+    return pd.DataFrame(rows)
 
-    df["datetime"] = pd.to_datetime(df["datetime"], utc=True, errors="coerce")
+
+def build_dataset(cities):
+    all_data = []
+
+    for city in cities:
+        try:
+            df_city = get_forecast_data(city)
+            all_data.append(df_city)
+            print(f"Loaded forecast data for {city}")
+        except Exception as e:
+            print(f"Error loading data for {city}: {e}")
+
+    if not all_data:
+        raise ValueError("Không lấy được dữ liệu từ city nào.")
+
+    df = pd.concat(all_data, ignore_index=True)
+    return df
+
+
+def add_features(df):
+    df = df.copy()
+    df["datetime"] = pd.to_datetime(df["datetime"], errors="coerce")
     df = df.dropna(subset=["datetime"])
-
-    # Đồng nhất humidity với API OpenWeatherMap: 0-100
-    df["humidity"] = df["humidity"] * 100
 
     df["hour"] = df["datetime"].dt.hour
     df["day"] = df["datetime"].dt.day
     df["month"] = df["datetime"].dt.month
-    df["year"] = df["datetime"].dt.year
 
-    return df
-
-
-def prepare_features(df):
     feature_columns = [
         "humidity",
+        "pressure",
         "wind_speed",
         "wind_bearing",
         "visibility",
-        "pressure",
+        "clouds",
+        "lat",
+        "lon",
         "hour",
         "day",
-        "month",
-        "year"
+        "month"
     ]
 
     X = df[feature_columns]
     y = df["temp"]
-    return X, y
+
+    return X, y, df
 
 
 def evaluate_model(name, model, X_train, X_test, y_train, y_test):
@@ -88,13 +135,13 @@ def evaluate_model(name, model, X_train, X_test, y_train, y_test):
 
 
 def main():
-    print("Loading dataset from Kaggle CSV...")
-    df = load_and_clean_data(DATA_PATH)
+    print("Building API-based weather dataset...")
+    df = build_dataset(CITIES)
 
-    df.to_csv("weather_dataset_cleaned.csv", index=False)
-    print("Saved cleaned dataset to weather_dataset_cleaned.csv")
+    df.to_csv("weather_api_training_dataset.csv", index=False)
+    print("Saved dataset to weather_api_training_dataset.csv")
 
-    X, y = prepare_features(df)
+    X, y, df = add_features(df)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
@@ -102,15 +149,21 @@ def main():
 
     models = [
         ("Linear Regression", LinearRegression()),
-        ("Random Forest", RandomForestRegressor(
-            n_estimators=20,
-            max_depth=5,
-            random_state=42
-        )),
-        ("Gradient Boosting", GradientBoostingRegressor(
-            n_estimators=50,
-            random_state=42
-        ))
+        (
+            "Random Forest",
+            RandomForestRegressor(
+                n_estimators=80,
+                max_depth=8,
+                random_state=42
+            )
+        ),
+        (
+            "Gradient Boosting",
+            GradientBoostingRegressor(
+                n_estimators=120,
+                random_state=42
+            )
+        )
     ]
 
     results = []
