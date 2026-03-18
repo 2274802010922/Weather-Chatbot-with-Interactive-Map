@@ -1,52 +1,68 @@
-# Weather-Chatbot-with-Interactive-Map
- 🌦 Weather Chatbot with Interactive Weather Map
+# Weather Chatbot with Interactive Map + Machine Learning
 
-A simple AI-style weather chatbot that allows users to ask for weather information in natural language and visualize regional weather data on an interactive map.
+This project is a Streamlit web app that combines:
 
-Ứng dụng chatbot thời tiết cho phép người dùng hỏi thời tiết bằng ngôn ngữ tự nhiên và hiển thị bản đồ thời tiết trực quan.
+- Current weather chatbot
+- Interactive map
+- Machine learning temperature prediction
+- Data Science dashboard using a Kaggle weather dataset
 
----
+## Features
 
-## 🚀 Features
+### 1. Current Weather Chatbot
+- Ask about the weather by typing a city name
+- Supports simple natural language input
+- Shows:
+  - city name
+  - temperature
+  - humidity
+  - pressure
+  - wind speed
+  - weather description
 
-### English
-- Ask weather in natural language (Vietnamese or English)
-- Automatic city name extraction from user input
-- Real-time weather data from OpenWeatherMap API
-- Interactive weather map with multiple layers:
-  - Temperature
-  - Rain
-  - Clouds
-  - Wind
-  - Rain radar
-- Weather visualization using color-based heat map
-- Chat history tracking
+### 2. Interactive Map
+- Displays the selected city's location on the map
 
-### Tiếng Việt
-- Hỏi thời tiết bằng ngôn ngữ tự nhiên (Việt hoặc Anh)
-- Tự động nhận diện tên thành phố từ câu hỏi
-- Lấy dữ liệu thời tiết realtime từ OpenWeather API
-- Bản đồ thời tiết tương tác với nhiều layer:
-  - Nhiệt độ
-  - Mưa
-  - Mây
-  - Gió
-  - Radar mưa
-- Hiển thị nhiệt độ khu vực bằng màu sắc
-- Lưu lịch sử truy vấn thời tiết
+### 3. Machine Learning Prediction
+- Uses a trained model to predict temperature from forecast data
+- Compares:
+  - actual temperature
+  - predicted temperature
 
----
+### 4. Data Science Dashboard
+- Temperature distribution
+- Humidity distribution
+- Temperature trend chart
+- Correlation heatmap
+- Model evaluation table
 
-## 🧠 Technologies Used
+## Machine Learning Models
+The project compares:
+- Linear Regression
+- Random Forest Regressor
+- Gradient Boosting Regressor
 
-- Python
-- Streamlit
-- OpenWeatherMap API
-- Leaflet.js
-- OpenStreetMap
-- Requests
-- Pandas
+Evaluation metrics:
+- MAE
+- RMSE
+- R²
 
----
+The best model is automatically selected and saved as:
 
-## 📂 Project Structure
+- `weather_model.pkl`
+
+## Files
+
+- `app.py` → Streamlit app
+- `weather_ml.py` → weather forecasting + ML prediction logic
+- `train_model.py` → training pipeline using Kaggle dataset
+- `weatherHistory.csv` → original Kaggle dataset
+- `weather_dataset_cleaned.csv` → cleaned dataset
+- `model_comparison.csv` → model evaluation results
+- `weather_model.pkl` → trained best model
+
+## Run locally
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py
