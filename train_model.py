@@ -1,5 +1,3 @@
-
-import requests
 import pandas as pd
 import joblib
 
@@ -8,85 +6,66 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-API_KEY = "703d35b679aa8f01b02eff474186a6b0"
-FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast"
-
-CITIES = ["Hanoi", "Ho Chi Minh City", "Da Nang", "Can Tho", "Hai Phong"]
+DATA_PATH = "weatherHistory.csv"
 
 
-def get_forecast_data(city):
-    params = {
-        "q": city,
-        "appid": API_KEY,
-        "units": "metric",
-        "lang": "vi"
-    }
+def load_and_clean_data(filepath):
+    df = pd.read_csv(filepath)
 
-    response = requests.get(FORECAST_URL, params=params, timeout=10)
-    response.raise_for_status()
-    data = response.json()
+    selected_columns = [
+        "Formatted Date",
+        "Temperature (C)",
+        "Apparent Temperature (C)",
+        "Humidity",
+        "Wind Speed (km/h)",
+        "Wind Bearing (degrees)",
+        "Visibility (km)",
+        "Pressure (millibars)"
+    ]
 
-    rows = []
-    for item in data["list"]:
-        rows.append({
-            "city": city,
-            "datetime": item["dt_txt"],
-            "temp": item["main"]["temp"],
-            "feels_like": item["main"]["feels_like"],
-            "temp_min": item["main"]["temp_min"],
-            "temp_max": item["main"]["temp_max"],
-            "pressure": item["main"]["pressure"],
-            "humidity": item["main"]["humidity"],
-            "wind_speed": item["wind"]["speed"],
-            "clouds": item["clouds"]["all"]
-        })
+    df = df[selected_columns].copy()
 
-    return pd.DataFrame(rows)
+    df.columns = [
+        "datetime",
+        "temp",
+        "feels_like",
+        "humidity",
+        "wind_speed",
+        "wind_bearing",
+        "visibility",
+        "pressure"
+    ]
 
+    df = df.dropna()
 
-def build_dataset(cities):
-    all_data = []
-    for city in cities:
-        try:
-            df_city = get_forecast_data(city)
-            all_data.append(df_city)
-            print(f"Loaded forecast data for {city}")
-        except Exception as e:
-            print(f"Error loading data for {city}: {e}")
+    df["datetime"] = pd.to_datetime(df["datetime"], utc=True, errors="coerce")
+    df = df.dropna(subset=["datetime"])
 
-    if not all_data:
-        raise ValueError("Không lấy được dữ liệu từ city nào.")
-
-    df = pd.concat(all_data, ignore_index=True)
-    return df
-
-
-def add_features(df):
-    df = df.copy()
-    df["datetime"] = pd.to_datetime(df["datetime"])
     df["hour"] = df["datetime"].dt.hour
     df["day"] = df["datetime"].dt.day
     df["month"] = df["datetime"].dt.month
+    df["year"] = df["datetime"].dt.year
 
-    # target: nhiệt độ hiện tại
-    # feature: các biến thời tiết + thời gian
+    return df
+
+
+def prepare_features(df):
     feature_columns = [
-        "feels_like",
-        "temp_min",
-        "temp_max",
-        "pressure",
         "humidity",
         "wind_speed",
-        "clouds",
+        "wind_bearing",
+        "visibility",
+        "pressure",
         "hour",
         "day",
-        "month"
+        "month",
+        "year"
     ]
 
     X = df[feature_columns]
     y = df["temp"]
 
-    return X, y, df
+    return X, y
 
 
 def evaluate_model(name, model, X_train, X_test, y_train, y_test):
@@ -107,14 +86,13 @@ def evaluate_model(name, model, X_train, X_test, y_train, y_test):
 
 
 def main():
-    print("Building dataset...")
-    df = build_dataset(CITIES)
+    print("Loading dataset from Kaggle CSV...")
+    df = load_and_clean_data(DATA_PATH)
 
-    # lưu data thô để sau này dùng cho Data Science
-    df.to_csv("weather_dataset.csv", index=False)
-    print("Saved dataset to weather_dataset.csv")
+    df.to_csv("weather_dataset_cleaned.csv", index=False)
+    print("Saved cleaned dataset to weather_dataset_cleaned.csv")
 
-    X, y, df = add_features(df)
+    X, y = prepare_features(df)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
@@ -141,8 +119,10 @@ def main():
         for r in results
     ])
 
+    results_df = results_df.sort_values(by="RMSE")
+
     print("\nModel comparison:")
-    print(results_df.sort_values(by="RMSE"))
+    print(results_df)
 
     results_df.to_csv("model_comparison.csv", index=False)
     print("Saved model comparison to model_comparison.csv")
