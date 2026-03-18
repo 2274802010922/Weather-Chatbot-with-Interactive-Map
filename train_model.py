@@ -100,8 +100,8 @@ def main():
 
     models = [
         ("Linear Regression", LinearRegression()),
-        ("Random Forest", RandomForestRegressor(n_estimators=100, random_state=42)),
-        ("Gradient Boosting", GradientBoostingRegressor(random_state=42))
+        ("Random Forest", RandomForestRegressor(n_estimators=20, max_depth=5, random_state=42)),
+        ("Gradient Boosting", GradientBoostingRegressor(n_estimators=50, max_depth=3, random_state=42))
     ]
 
     results = []
