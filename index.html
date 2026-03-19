@@ -1,29 +1,192 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Weather Chatbot</title>
-    <style>
-        body {
-            font-family: Arial;
-            text-align: center;
-            background: #f0f8ff;
-        }
-        h1 {
-            color: #0077b6;
-        }
-        iframe {
-            width: 90%;
-            height: 600px;
-            border: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Chatbot App</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #eef7ff 0%, #f8fbff 100%);
+      color: #1f2937;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      padding: 50px 20px 30px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 48px;
+      color: #0077b6;
+    }
+
+    header p {
+      font-size: 22px;
+      margin-top: 15px;
+      color: #374151;
+    }
+
+    .buttons {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.2s ease;
+    }
+
+    .btn-primary {
+      background: #0077b6;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #005f8f;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #0077b6;
+      border: 2px solid #0077b6;
+    }
+
+    .btn-secondary:hover {
+      background: #eaf6ff;
+    }
+
+    section {
+      margin: 30px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+
+    h2 {
+      color: #0077b6;
+      margin-top: 0;
+    }
+
+    ul {
+      padding-left: 20px;
+      line-height: 1.8;
+    }
+
+    .iframe-wrapper {
+      overflow: hidden;
+      border-radius: 16px;
+      background: #f3f4f6;
+    }
+
+    iframe {
+      width: 100%;
+      height: 700px;
+      border: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 20px 50px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 34px;
+      }
+
+      header p {
+        font-size: 18px;
+      }
+
+      iframe {
+        height: 600px;
+      }
+
+      section {
+        padding: 20px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <header class="container">
+    <h1>🌤 Weather Chatbot App</h1>
+    <p>Ứng dụng thời tiết tích hợp chatbot, bản đồ tương tác và dự đoán nhiệt độ bằng Machine Learning</p>
 
-<h1>🌤 Weather Chatbot App</h1>
-<p>Ứng dụng thời tiết + ML + bản đồ</p>
+    <div class="buttons">
+      <a class="btn btn-primary" href="https://weather-chatbot-with-interactive-map-5vnsjgg9ett8nmjzanwumz.streamlit.app/" target="_blank">
+        🚀 Mở ứng dụng
+      </a>
+      <a class="btn btn-secondary" href="https://github.com/2274802010922/Weather-Chatbot-with-Interactive-Map" target="_blank">
+        📂 Xem GitHub
+      </a>
+    </div>
+  </header>
 
-<iframe src="https://weather-chatbot-with-interactive-map-5vnsjgg9ett8nmjzanwumz.streamlit.app/?embed=true"></iframe>
+  <main class="container">
+    <section>
+      <h2>Giới thiệu dự án</h2>
+      <p>
+        Đây là website giới thiệu cho dự án Weather Chatbot with Interactive Map. Hệ thống cho phép người dùng
+        tra cứu thời tiết hiện tại, tương tác với chatbot, xem bản đồ thời tiết nhiều lớp và dự đoán nhiệt độ
+        bằng mô hình Machine Learning.
+      </p>
+    </section>
+
+    <section>
+      <h2>Tính năng chính</h2>
+      <ul>
+        <li>Chatbot hỏi đáp thời tiết theo tên thành phố hoặc câu lệnh tự nhiên</li>
+        <li>Hiển thị thông tin thời tiết như nhiệt độ, độ ẩm, áp suất, tốc độ gió</li>
+        <li>Bản đồ thời tiết tương tác với nhiều lớp hiển thị</li>
+        <li>Dự đoán nhiệt độ dựa trên mô hình Machine Learning</li>
+        <li>Dashboard phân tích dữ liệu thời tiết</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Công nghệ sử dụng</h2>
+      <ul>
+        <li>Python, Streamlit</li>
+        <li>HTML, CSS</li>
+        <li>GitHub Pages, Netlify, InfinityFree</li>
+        <li>Machine Learning, Weather API, Interactive Map</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Chạy trực tiếp trên website</h2>
+      <div class="iframe-wrapper">
+        <iframe src="https://weather-chatbot-with-interactive-map-5vnsjgg9ett8nmjzanwumz.streamlit.app/?embed=true"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 Weather Chatbot Project. Built for learning, demo and research presentation.
+  </footer>
 </body>
 </html>
