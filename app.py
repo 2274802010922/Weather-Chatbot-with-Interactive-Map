@@ -14,7 +14,7 @@ CURRENT_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
 
 st.set_page_config(page_title="Weather Chatbot + ML Dashboard", layout="wide")
 
-st.title("🌦️ Weather Chatbot with Interactive Map + ML Dashboard")
+st.title("🌦️ Weather App with Interactive Map + ML Dashboard")
 st.caption(
     "Ứng dụng kết hợp thời tiết hiện tại, bản đồ thời tiết trực quan, "
     "dự đoán nhiệt độ bằng Machine Learning và dashboard phân tích dữ liệu."
